@@ -274,6 +274,45 @@ class HttpMessageUnitTest {
     }
 
     @Test
+    void shouldSetContentTypeWhenSettingMethodToPOST() throws Exception {
+        // Given
+        HttpMessage message =
+                new HttpMessage(
+                        new HttpRequestHeader(
+                                "GET "
+                                        + "http://www.example.com:9000/?param=param1 HTTP/1.1\r\nHost: www.example.com:9000"));
+        // When
+        message.mutateHttpMethod(HttpRequestHeader.POST);
+        // Then
+        assertThat(message.getRequestHeader().getMethod(), is(HttpRequestHeader.POST));
+        assertThat(
+                message.getRequestHeader().getURI().toString(), is("http://www.example.com:9000/"));
+        assertThat(
+                message.getRequestHeader().getHeader(HttpRequestHeader.CONTENT_TYPE),
+                is(HttpRequestHeader.FORM_URLENCODED_CONTENT_TYPE));
+    }
+
+    @Test
+    void shouldRemoveContentTypeWhenSettingMethodToGET() throws Exception {
+        // Given
+        HttpMessage message =
+                new HttpMessage(
+                        new HttpRequestHeader(
+                                "POST "
+                                        + "http://www.example.com:9000/ HTTP/1.1\r\nHost: www.example.com:9000"));
+        message.setRequestBody("param=param1");
+        // When
+        message.mutateHttpMethod(HttpRequestHeader.GET);
+        // Then
+        assertThat(message.getRequestHeader().getMethod(), is(HttpRequestHeader.GET));
+        assertThat(
+                message.getRequestHeader().getURI().toString(),
+                is("http://www.example.com:9000/?param=param1"));
+        assertThat(
+                message.getRequestHeader().getHeader(HttpRequestHeader.CONTENT_TYPE), nullValue());
+    }
+
+    @Test
     void shouldSetContentEncodingsWhenSettingRequestBodyByte() {
         // Given
         HttpRequestHeader header = mock(HttpRequestHeader.class);

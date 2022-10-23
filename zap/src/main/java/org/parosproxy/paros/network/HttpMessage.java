@@ -990,6 +990,11 @@ public class HttpMessage implements Message {
             if (prevMethod.equalsIgnoreCase(method)) {
                 return;
             }
+            // When changing methods, remove the content-type if a method should not have a body
+            // This does not prevent the user for modifying the request afterwards if needed
+            if (!(method.equals(HttpRequestHeader.POST) || method.equals(HttpRequestHeader.PUT))) {
+                getRequestHeader().setHeader(HttpRequestHeader.CONTENT_TYPE, null);
+            }
             if (prevMethod.equals(HttpRequestHeader.POST)) {
                 // Was POST, move all params onto the URL
                 if (body != null && body.length() > 0) {
@@ -1035,6 +1040,11 @@ public class HttpMessage implements Message {
                             sb.append('=');
                         }
                     }
+                    // Explicitly set the Content-Type for the body of the POST
+                    getRequestHeader()
+                            .setHeader(
+                                    HttpRequestHeader.CONTENT_TYPE,
+                                    HttpRequestHeader.FORM_URLENCODED_CONTENT_TYPE);
                     body = sb.toString();
                     uri.setQuery(null);
                 }
